@@ -1,0 +1,66 @@
+#!/bin/bash
+#
+# Issue warning e-mails if SSL certificates expire, using
+# certwatch(1).  Set NOCERTWATCH=yes in /etc/sysconfig/httpd
+# to disable.  Pass additional options to certwatch in the
+# CERTWATCH_OPTS variable; see the man page for details.
+# 
+
+# For certificates in pem files
+watch_files_certs() 
+{
+	test -x /etc/httpd/modules/mod_ssl.so || return 0
+	test -r /etc/httpd/conf/httpd.conf    || return 0
+
+    set -o pipefail # pick up exit code of httpd not sort
+
+    certs=`${httpd} ${OPTIONS} -t -DDUMP_CERTS 2>/dev/null | /bin/sort -u`
+    RETVAL=$?
+    test $RETVAL -eq 0 || return
+
+    for c in $certs; do
+      # Check whether a warning message is needed, then issue one if so.
+      /usr/bin/certwatch $CERTWATCH_OPTS -q "$c" && 
+        /usr/bin/certwatch $CERTWATCH_OPTS "$c" | /usr/sbin/sendmail -oem -oi -t 2>/dev/null
+    done
+}
+
+# For certificates in the database
+watch_database_certs() 
+{
+    test -x /usr/bin/certutil || return 0
+    test -x /usr/lib/httpd/modules/libmodnss.so || return 0
+    test -r /etc/httpd/conf.d/nss.conf || return 0
+        
+    # find path to mod_nss' database
+    database=`/usr/bin/gawk '/^NSSCertificateDatabase/ { print $2 }' /etc/httpd/conf.d/nss.conf`
+    
+    # find the database prefix if any from the mod_nss config file
+    dbprefix=`/usr/bin/gawk '/^NSSDBPrefix/ { print $2 }' /etc/httpd/conf.d/nss.conf`
+
+    set -o pipefail # pick up exit code of certutil not gawk
+    nicknames=`certutil -L -d $database | /usr/bin/gawk '{ print $1 }'`
+    RETVAL=$?
+    test $RETVAL -eq 0 || return 0
+    
+    for n in $nicknames; do
+        # Check whether a warning message is needed, then issue one if so.
+        /usr/bin/certwatch $CERTWATCH_OPTS -q -d "$database" -c "$dbprefix" -k "$dbprefix" "$n" && 
+          /usr/bin/certwatch $CERTWATCH_OPTS -d "$database" -c "$dbprefix" -k "$dbprefix" "$n" | /usr/sbin/sendmail -oem -oi -t 2>/dev/null
+    done
+}
+
+[ -r /etc/sysconfig/httpd ] && . /etc/sysconfig/httpd
+
+# Use configured httpd binary
+httpd=${HTTPD-/usr/sbin/httpd}
+
+# Sanity checks
+test -z "${NOCERTWATCH}" || exit 0
+test -x ${httpd} || exit 0
+test -x /usr/bin/certwatch || exit 0
+test -x /usr/sbin/sendmail || exit 0
+test -x /bin/sort || exit 0
+
+watch_files_certs
+watch_database_certs

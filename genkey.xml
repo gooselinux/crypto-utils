@@ -1,0 +1,183 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
+  "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd" [
+
+<!ENTITY date SYSTEM "date.xml">
+<!ENTITY version SYSTEM "version.xml">
+
+]>
+
+<refentry>
+
+  <refentryinfo>
+    <date>&date;</date>
+    <title>Cryptography Utilities</title>
+    <productname>crypto-utils</productname>
+    <productnumber>&version;</productnumber>
+  </refentryinfo>
+
+  <refmeta>
+    <refentrytitle>genkey</refentrytitle>
+    <manvolnum>1</manvolnum>
+  </refmeta>
+
+  <refnamediv>
+    <refname>genkey</refname>
+    <refpurpose>generate SSL certificates and certificate requests</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis>
+      <command>genkey</command>
+      <arg><option>--test</option></arg>
+      <arg><option>--days <replaceable>count</replaceable></option></arg>
+      <group>
+        <arg><option>--genreq</option></arg>
+        <arg><option>--makeca</option></arg>
+        <arg><option>--nss</option></arg>
+        <arg><option>--renew</option></arg>
+        <arg><option>--cacert</option></arg>
+      </group>
+      <arg choice="req"><replaceable>hostname</replaceable></arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Description</title>
+
+    <para><command>genkey</command> is an interactive command-line
+    tool which can be used to generate SSL certificates or Certificate
+    Signing Requests (CSR).  Generated certificates are stored in the
+    directory <filename>/etc/pki/tls/certs/</filename>, and the
+    corresponding private key in
+    <filename>/etc/pki/tls/private/</filename>. </para>
+
+    <para>When using mod_nss the private key is stored in the
+    nss database. Consult the nss.conf file in
+    <filename>/etc/httpd/conf.d/</filename>
+    for the location of the database. </para>
+
+    <para><command>genkey</command> will prompt for the size of key
+    desired; whether or not to generate a CSR; whether or not an
+    encrypted private key is desired; the certificate subject DN
+    details.</para>
+
+    <para><command>genkey</command> generates random data for the
+    private key using the truerand library and also by prompting the
+    user for entry of random text.</para>
+
+    <para><option>nss</option> indicates that mod_nss database 
+    should be used to store keys and certificates.</para>
+
+  </refsect1>
+  
+  <refsect1>
+    <title>Options</title>
+    
+    <variablelist>
+      <varlistentry>
+        <term><option>--makeca</option></term>
+        <listitem><simpara>Generate a Certificate Authority
+        keypair and certificate.</simpara></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><option>--genreq</option></term>
+        <listitem><simpara>Generate a Certificate Signing Request for
+        an existing private key, which can be submitted to a CA (for
+        example, for renewal).</simpara></listitem>
+      </varlistentry>
+
+
+      <varlistentry>
+        <term><option>--renew</option></term>
+        <listitem><simpara>Used with --genreq to indicate a renewal,
+        the existing keypair will be used. Certs and keys must reside
+        in the nss database, therefore --nss is also required. Pem file
+        based cert renewal is not currently supported.</simpara></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><option>--cacert</option></term>
+        <listitem><simpara>The certificate renewal is for a CA, needed for openssl certs only.</simpara></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><option>--days</option> <replaceable>count</replaceable></term>
+        <listitem><simpara>When generating a self-signed certificate,
+        specify that the number of days for which the certificate is
+        valid be <replaceable>count</replaceable> rather than the default
+        value of 30.</simpara></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><option>--test</option></term>
+        <listitem><simpara>For test purposes only; omit the slow
+        process of generating random data.</simpara></listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1>
+    <title>Examples</title>
+
+    <para>The following example will create a self-signed certificate
+    and private key for the hostname
+    <literal>www.example.com</literal>:
+
+      <programlisting>
+        # genkey --days 120 www.example.com
+      </programlisting>
+
+    </para>
+
+    <para>The following example will create a self-signed certificate
+    and private key for the hostname <literal>www.nssexample.com</literal>
+    which will be stored in cert and key in the nss database. If no nickname
+    is given the tool will extract it from mod_nss's nss configuration file.
+    
+      <programlisting>
+        # genkey --days --nss 120 www.nssexample.com
+      </programlisting>
+
+    </para>
+
+    <para>The following example will generate a certificate signing
+     request for a new mod_nss style cert specified by its nickname, 
+    <literal>Server-Cert</literal>:
+    
+      <programlisting>
+        # genkey --genreq --nss --days 120 Server-Cert
+      </programlisting>
+
+    </para>
+
+    <para>The following example will generate a certificate signing request
+    for the renewal of an existing mod_nss cert specified by its nickname, 
+    <literal>Server-Cert</literal>:
+    
+      <programlisting>
+        # genkey --genreq --renew --nss --days 120 Server-Cert
+      </programlisting>
+
+    </para>
+   
+  </refsect1>    
+
+  <refsect1>
+    <title>Files</title>
+
+    <para><filename>/etc/pki/tls/openssl.cnf</filename></para>
+
+  </refsect1>
+
+  <refsect1>
+    <title>See also</title>
+
+    <para>certwatch(1), keyrand(1)</para>
+  </refsect1>
+
+</refentry>
+
+<!-- LocalWords:  keypair certwatch
+-->

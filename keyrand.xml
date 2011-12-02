@@ -1,0 +1,76 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
+  "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd" [
+
+<!ENTITY date SYSTEM "date.xml">
+<!ENTITY version SYSTEM "version.xml">
+
+]>
+
+<refentry>
+
+  <refentryinfo>
+    <date>&date;</date>
+    <title>Cryptography Utilities</title>
+    <productname>crypto-utils</productname>
+    <productnumber>&version;</productnumber>
+  </refentryinfo>
+
+  <refmeta>
+    <refentrytitle>keyrand</refentrytitle>
+    <manvolnum>1</manvolnum>
+  </refmeta>
+
+  <refnamediv>
+    <refname>keyrand</refname>
+    <refpurpose>utility for collecting random data</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis>
+      <command>keyrand</command>
+      <arg choice="req"><replaceable>bits</replaceable></arg>
+      <arg choice="req"><replaceable>outfile</replaceable></arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Description</title>
+
+    <para><command>keyrand</command> is a tool which collects a given
+    number of random bits from the kernel random number generator,
+    presenting a text-based user interface showing progress.</para>
+
+    <para>The random data is read from
+    <filename>/dev/random</filename> and appended to the output file
+    <parameter>outfile</parameter>, which must already exist.</para>
+
+  </refsect1>
+
+  <refsect1>
+    <title>Examples</title>
+
+    <para>The following example will collect 1024 bits of random
+    data and append them to the file <filename>data</filename>:
+
+      <programlisting>
+# keyrand 1024 data
+      </programlisting>
+
+    </para>
+  </refsect1>    
+
+  <refsect1>
+    <title>Files</title>
+
+    <para><filename>/dev/random</filename></para>
+
+  </refsect1>
+
+  <refsect1>
+    <title>See also</title>
+
+    <para>genkey(1)</para>
+  </refsect1>
+
+</refentry>
